@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     os.chdir("/mnt/vol/research/SignRecognition/slt")
 
-    parser = argparse.ArgumentParser("Joey-NMT")
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "mod", type=str, help="Name of variable to change"
                               "optimizer\n"
@@ -150,11 +150,21 @@ if __name__ == "__main__":
     with open(out_dir + "/train.submit_file","w") as f:
         f.write(file)
 
-
+    for cfg in cfgs:
+        opt = cfg["training"]["optimizer"]
+        lr = cfg["training"]["learning_rate"]
+        bs = cfg["training"]["batch_size"]
+        drop = cfg["model"]["encoder"]["dropout"]
+        layers = cfg["model"]["encoder"]["num_layers"]
+        hs = cfg["model"]["encoder"]["hidden_size"]
+        heads = cfg["model"]["encoder"]["num_heads"]
+        norm = cfg["model"]["encoder"]["embeddings"]["norm_type"]
+        act = cfg["model"]["encoder"]["embeddings"]["activation_type"]
+        scale = cfg["model"]["encoder"]["embeddings"]["scale"]
+        scale = "-" if scale == "false" else scale
+        print(f"{opt}\t{lr}\t{bs}\t{drop}\t{layers}\t{hs}\t{heads}\t{norm}\t{act}\t{scale}")
     print(f"condor_submit /vol/research/SignRecognition/slt/{out_dir}/train.submit_file")
 
 
 
 #Opt.	LR	BS	Drop	Layer	HS	Heads	Normalization	Activation	Scale
-
-#todo: Add print for options
