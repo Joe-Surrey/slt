@@ -58,7 +58,7 @@ def save_config(path,cfg) -> None:
         yaml.dump(cfg, ymlfile, default_flow_style=False)
 if __name__ == "__main__":
 
-    os.chdir("/mnt/vol/research/SignRecognition/slt")
+    os.chdir("/vol/research/SignRecognition/slt")
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
