@@ -3,17 +3,19 @@
 Data module
 """
 from torchtext import data
+import argparse
+import numpy as np
 from torchtext.data import Field, RawField
 from typing import List, Tuple
 import pickle
 import gzip
 import torch
-
+import lzma
 
 def load_dataset_file(filename):
-    with gzip.open(filename, "rb") as f:
-        loaded_object = pickle.load(f)
-        return loaded_object
+    print(f"Loading {filename}")
+    with open(filename, "rb") as f:
+        return pickle.load(f)
 
 
 class SignTranslationDataset(data.Dataset):
@@ -56,6 +58,7 @@ class SignTranslationDataset(data.Dataset):
             tmp = load_dataset_file(annotation_file)
             for s in tmp:
                 seq_id = s["name"]
+                s["sign"] = torch.Tensor(np.delete(pickle.loads(lzma.decompress(s['sign'])), (range(13 * 3, 25 * 3)), axis=1))
                 if seq_id in samples:
                     assert samples[seq_id]["name"] == s["name"]
                     assert samples[seq_id]["signer"] == s["signer"]
@@ -83,10 +86,38 @@ class SignTranslationDataset(data.Dataset):
                         sample["signer"],
                         # This is for numerical stability
                         sample["sign"] + 1e-8,
-                        sample["gloss"].strip(),
-                        sample["text"].strip(),
+                        str(sample["gloss"]).strip(),
+                        str(sample["text"]).strip(),
                     ],
                     fields,
                 )
             )
         super().__init__(examples, fields, **kwargs)
+
+if __name__ == "__main__":#Get stats
+    parser = argparse.ArgumentParser("test-data")
+    parser.add_argument(
+        "--path",
+        default="/mnt/vol/research/SignTranslation/data/ChaLearn2021/train/ChaLearn2021.train.openpose.fp32.slt.ui01.valid",
+        type=str,
+        help="Dataset path",
+        required=False
+    )
+    args = parser.parse_args()
+    path = args.path
+    tmp = load_dataset_file(path)
+
+    means = np.zeros(len(tmp))
+    lengths = np.zeros(len(tmp))
+    for i,s in enumerate(tmp):
+        values = pickle.loads(lzma.decompress(s['sign']))#["shoulder centre"]
+        vid_means = values.mean(axis = 0)
+
+        means[i] = (vid_means[5*3] + vid_means[6*3])/2
+
+        lengths[i] = values.shape[0]
+
+    print(means.shape)
+    print(f"Shoulders have means: {means.mean()}, var: {means.var(ddof=1)}, max: {means.max()}, min: {means.min()}")
+    print(f"Video length has mean: {lengths.mean()}, var: {lengths.var(ddof=1)}, max: {lengths.max()}, min: {lengths.min()}")
+

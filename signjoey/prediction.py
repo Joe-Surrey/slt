@@ -11,19 +11,19 @@ import torch.nn as nn
 
 from typing import List
 from torchtext.data import Dataset
-from signjoey.loss import XentLoss
-from signjoey.helpers import (
+from loss import XentLoss
+from helpers import (
     bpe_postprocess,
     load_config,
     get_latest_checkpoint,
     load_checkpoint,
 )
-from signjoey.metrics import bleu, chrf, rouge, wer_list
-from signjoey.model import build_model, SignModel
-from signjoey.batch import Batch
-from signjoey.data import load_data, make_data_iter
-from signjoey.vocabulary import PAD_TOKEN, SIL_TOKEN
-from signjoey.phoenix_utils.phoenix_cleanup import (
+from metrics import bleu, chrf, rouge, wer_list, acc
+from model import build_model, SignModel
+from batch import Batch
+from data import load_data, make_data_iter
+from vocabulary import PAD_TOKEN, SIL_TOKEN
+from phoenix_utils.phoenix_cleanup import (
     clean_phoenix_2014,
     clean_phoenix_2014_trans,
 )
@@ -109,7 +109,6 @@ def validate_on_data(
         shuffle=False,
         train=False,
     )
-
     # disable dropout
     model.eval()
     # don't track gradients during validation
@@ -210,9 +209,10 @@ def validate_on_data(
             gls_ref = [gls_cln_fn(" ".join(t)) for t in data.gls]
             gls_hyp = [gls_cln_fn(" ".join(t)) for t in decoded_gls]
             assert len(gls_ref) == len(gls_hyp)
-
+            print(gls_ref,gls_hyp)#//////////////////////////////////////////////////
             # GLS Metrics
             gls_wer_score = wer_list(hypotheses=gls_hyp, references=gls_ref)
+            gls_acc_score = acc(hypotheses=gls_hyp, references=gls_ref)
 
         if do_translation:
             assert len(all_txt_outputs) == len(data)
@@ -250,6 +250,7 @@ def validate_on_data(
         if do_recognition:
             valid_scores["wer"] = gls_wer_score["wer"]
             valid_scores["wer_scores"] = gls_wer_score
+            valid_scores["acc"] = gls_acc_score
         if do_translation:
             valid_scores["bleu"] = txt_bleu["bleu4"]
             valid_scores["bleu_scores"] = txt_bleu
@@ -523,6 +524,7 @@ def test(
         "Best CTC Decode Beam Size: %d\n\t"
         "Best Translation Beam Size: %d and Alpha: %d\n\t"
         "WER %3.2f\t(DEL: %3.2f,\tINS: %3.2f,\tSUB: %3.2f)\n\t"
+        "Acc %3.2f\n\t"
         "BLEU-4 %.2f\t(BLEU-1: %.2f,\tBLEU-2: %.2f,\tBLEU-3: %.2f,\tBLEU-4: %.2f)\n\t"
         "CHRF %.2f\t"
         "ROUGE %.2f",
@@ -538,6 +540,10 @@ def test(
         else -1,
         dev_best_recognition_result["valid_scores"]["wer_scores"]["sub_rate"]
         if do_recognition
+        else -1,
+        # Acc
+        val_res["valid_scores"]["acc"]
+        if self.do_recognition
         else -1,
         dev_best_translation_result["valid_scores"]["bleu"] if do_translation else -1,
         dev_best_translation_result["valid_scores"]["bleu_scores"]["bleu1"]
@@ -593,6 +599,7 @@ def test(
         "Best CTC Decode Beam Size: %d\n\t"
         "Best Translation Beam Size: %d and Alpha: %d\n\t"
         "WER %3.2f\t(DEL: %3.2f,\tINS: %3.2f,\tSUB: %3.2f)\n\t"
+        "Acc %3.2f\n\t"
         "BLEU-4 %.2f\t(BLEU-1: %.2f,\tBLEU-2: %.2f,\tBLEU-3: %.2f,\tBLEU-4: %.2f)\n\t"
         "CHRF %.2f\t"
         "ROUGE %.2f",
@@ -608,6 +615,10 @@ def test(
         else -1,
         test_best_result["valid_scores"]["wer_scores"]["sub_rate"]
         if do_recognition
+        else -1,
+        # Acc
+        val_res["valid_scores"]["acc"]
+        if self.do_recognition
         else -1,
         test_best_result["valid_scores"]["bleu"] if do_translation else -1,
         test_best_result["valid_scores"]["bleu_scores"]["bleu1"]

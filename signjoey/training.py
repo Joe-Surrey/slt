@@ -10,9 +10,9 @@ import shutil
 import time
 import queue
 
-from signjoey.model import build_model
-from signjoey.batch import Batch
-from signjoey.helpers import (
+from model import build_model
+from batch import Batch
+from helpers import (
     log_data_info,
     load_config,
     log_cfg,
@@ -22,14 +22,14 @@ from signjoey.helpers import (
     set_seed,
     symlink_update,
 )
-from signjoey.model import SignModel
-from signjoey.prediction import validate_on_data
-from signjoey.loss import XentLoss
-from signjoey.data import load_data, make_data_iter
-from signjoey.builders import build_optimizer, build_scheduler, build_gradient_clipper
-from signjoey.prediction import test
-from signjoey.metrics import wer_single
-from signjoey.vocabulary import SIL_TOKEN
+from model import SignModel
+from prediction import validate_on_data
+from loss import XentLoss
+from data import load_data, make_data_iter
+from builders import build_optimizer, build_scheduler, build_gradient_clipper
+from prediction import test
+from metrics import wer_single
+from vocabulary import SIL_TOKEN
 from torch import Tensor
 from torch.utils.tensorboard import SummaryWriter
 from torchtext.data import Dataset
@@ -100,7 +100,7 @@ class TrainManager:
         self.num_valid_log = train_config.get("num_valid_log", 5)
         self.ckpt_queue = queue.Queue(maxsize=train_config.get("keep_last_ckpts", 5))
         self.eval_metric = train_config.get("eval_metric", "bleu")
-        if self.eval_metric not in ["bleu", "chrf", "wer", "rouge"]:
+        if self.eval_metric not in ["bleu", "chrf", "wer", "rouge","acc"]:
             raise ValueError(
                 "Invalid setting for 'eval_metric': {}".format(self.eval_metric)
             )
@@ -120,6 +120,8 @@ class TrainManager:
         elif self.early_stopping_metric == "eval_metric":
             if self.eval_metric in ["bleu", "chrf", "rouge"]:
                 assert self.do_translation
+                self.minimize_metric = False
+            elif self.eval_metric == "acc":
                 self.minimize_metric = False
             else:  # eval metric that has to get minimized (not yet implemented)
                 self.minimize_metric = True
@@ -517,6 +519,9 @@ class TrainManager:
                             val_res["valid_scores"]["wer_scores"],
                             self.steps,
                         )
+                        self.tb_writer.add_scalar(
+                            "valid/acc",val_res["valid_scores"]["acc"], self.steps,
+                        )
 
                     if self.do_translation:
                         self.tb_writer.add_scalar(
@@ -607,6 +612,7 @@ class TrainManager:
                         "PPL: %4.5f\n\t"
                         "Eval Metric: %s\n\t"
                         "WER %3.2f\t(DEL: %3.2f,\tINS: %3.2f,\tSUB: %3.2f)\n\t"
+                        "Acc %3.2f\n\t"
                         "BLEU-4 %.2f\t(BLEU-1: %.2f,\tBLEU-2: %.2f,\tBLEU-3: %.2f,\tBLEU-4: %.2f)\n\t"
                         "CHRF %.2f\t"
                         "ROUGE %.2f",
@@ -633,6 +639,10 @@ class TrainManager:
                         if self.do_recognition
                         else -1,
                         val_res["valid_scores"]["wer_scores"]["sub_rate"]
+                        if self.do_recognition
+                        else -1,
+                        #Acc
+                        val_res["valid_scores"]["acc"]
                         if self.do_recognition
                         else -1,
                         # BLEU
@@ -838,6 +848,7 @@ class TrainManager:
                 "PPL: {:.5f}\t"
                 "Eval Metric: {}\t"
                 "WER {:.2f}\t(DEL: {:.2f},\tINS: {:.2f},\tSUB: {:.2f})\t"
+                "Acc {:.2f}\t"
                 "BLEU-4 {:.2f}\t(BLEU-1: {:.2f},\tBLEU-2: {:.2f},\tBLEU-3: {:.2f},\tBLEU-4: {:.2f})\t"
                 "CHRF {:.2f}\t"
                 "ROUGE {:.2f}\t"
@@ -856,6 +867,10 @@ class TrainManager:
                     if self.do_recognition
                     else -1,
                     valid_scores["wer_scores"]["sub_rate"]
+                    if self.do_recognition
+                    else -1,
+                    #Acc
+                    valid_scores["acc"]
                     if self.do_recognition
                     else -1,
                     # BLEU
@@ -994,7 +1009,7 @@ def train(cfg_file: str) -> None:
 
     # for training management, e.g. early stopping and model selection
     trainer = TrainManager(model=model, config=cfg)
-
+    print(f"Saving to {trainer.model_dir + '/config.yaml'}")
     # store copy of original training config in model dir
     shutil.copy2(cfg_file, trainer.model_dir + "/config.yaml")
 

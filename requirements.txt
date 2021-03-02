@@ -6,8 +6,8 @@ cachetools==4.0.0
 certifi==2019.11.28
 cffi==1.13.2
 chardet==3.0.4
-conda==4.8.0
-conda-package-handling==1.6.0
+#conda==4.8.0
+#conda-package-handling==1.6.0
 cryptography==2.8
 cycler==0.10.0
 gast==0.2.2
@@ -60,9 +60,9 @@ scikit-learn==0.22.2.post1
 scipy==1.4.1
 sentencepiece==0.1.85
 six==1.13.0
-tensorboard==2.1.2
 tensorflow==2.1.2
-tensorflow-estimator==2.1.2
+tensorboard
+tensorflow-estimator
 termcolor==1.1.0
 torch==1.4.0
 torchtext==0.5.0
@@ -70,7 +70,7 @@ torchvision==0.5.0
 tqdm==4.40.2
 typing==3.7.4.1
 urllib3==1.25.7
-warmup-scheduler==0.1.1
+#warmup-scheduler
 wcwidth==0.1.8
 Werkzeug==0.16.0
 wrapt==1.11.2

@@ -3,7 +3,8 @@ import math
 import random
 import torch
 import numpy as np
-
+import pickle
+import lzma
 
 class Batch:
     """Object for holding a batch of data with mask during training.
@@ -40,6 +41,9 @@ class Batch:
         self.signer = torch_batch.signer
         # Sign
         self.sgn, self.sgn_lengths = torch_batch.sgn
+
+
+
 
         # Here be dragons
         if frame_subsampling_ratio:

@@ -2,3 +2,16 @@
 .idea/
 
 *.pyc
+experiments/
+logs/
+sign_recognition_cl_openpose.dep
+sign_recognition_cl_openpose.ui01
+sign_recognition_cl_openpose.ui02
+sign_recognition_phoenix
+sign_sample_model
+sign_sample_model_old
+test_r_cl.submit_file
+test_r_px.submit_file
+train_r_cl.submit_file
+train_r_px.submit_file
+data/
