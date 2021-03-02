@@ -51,6 +51,7 @@ def validate_on_data(
     batch_type: str = "sentence",
     dataset_version: str = "phoenix_2014_trans",
     frame_subsampling_ratio: int = None,
+    max_batches: int = None,
 ) -> (
     float,
     float,
@@ -121,7 +122,9 @@ def validate_on_data(
         total_num_txt_tokens = 0
         total_num_gls_tokens = 0
         total_num_seqs = 0
-        for valid_batch in iter(valid_iter):
+        for batch_num, valid_batch in enumerate(iter(valid_iter)):
+            if max_batches is not None and max_batches == batch_num:
+                break
             batch = Batch(
                 is_train=False,
                 torch_batch=valid_batch,
@@ -185,7 +188,7 @@ def validate_on_data(
             )
 
         if do_recognition:
-            assert len(all_gls_outputs) == len(data)
+            #assert len(all_gls_outputs) == len(data)
             if (
                 recognition_loss_function is not None
                 and recognition_loss_weight != 0
@@ -206,10 +209,9 @@ def validate_on_data(
                 raise ValueError("Unknown Dataset Version: " + dataset_version)
 
             # Construct gloss sequences for metrics
-            gls_ref = [gls_cln_fn(" ".join(t)) for t in data.gls]
+            gls_ref = [gls_cln_fn(" ".join(t)) for t in data.gls][:len(decoded_gls)]
             gls_hyp = [gls_cln_fn(" ".join(t)) for t in decoded_gls]
             assert len(gls_ref) == len(gls_hyp)
-            print(gls_ref,gls_hyp)#//////////////////////////////////////////////////
             # GLS Metrics
             gls_wer_score = wer_list(hypotheses=gls_hyp, references=gls_ref)
             gls_acc_score = acc(hypotheses=gls_hyp, references=gls_ref)
@@ -542,8 +544,8 @@ def test(
         if do_recognition
         else -1,
         # Acc
-        val_res["valid_scores"]["acc"]
-        if self.do_recognition
+        dev_best_recognition_result["valid_scores"]["acc"]
+        if do_recognition
         else -1,
         dev_best_translation_result["valid_scores"]["bleu"] if do_translation else -1,
         dev_best_translation_result["valid_scores"]["bleu_scores"]["bleu1"]
@@ -617,8 +619,8 @@ def test(
         if do_recognition
         else -1,
         # Acc
-        val_res["valid_scores"]["acc"]
-        if self.do_recognition
+        test_best_result["valid_scores"]["acc"]
+        if do_recognition
         else -1,
         test_best_result["valid_scores"]["bleu"] if do_translation else -1,
         test_best_result["valid_scores"]["bleu_scores"]["bleu1"]

@@ -118,6 +118,6 @@ if __name__ == "__main__":#Get stats
         lengths[i] = values.shape[0]
 
     print(means.shape)
-    print(f"Shoulders have means: {means.mean()}, var: {means.var(ddof=1)}, max: {means.max()}, min: {means.min()}")
-    print(f"Video length has mean: {lengths.mean()}, var: {lengths.var(ddof=1)}, max: {lengths.max()}, min: {lengths.min()}")
+    print(f"Shoulders have means: {means.mean()}, var: {means.std(ddof=1)}, max: {means.max()}, min: {means.min()}")
+    print(f"Video length has mean: {lengths.mean()}, var: {lengths.std(ddof=1)}, max: {lengths.max()}, min: {lengths.min()}")
 
