@@ -3,8 +3,8 @@
 This module holds various MT evaluation metrics.
 """
 
-from signjoey.external_metrics import sacrebleu
-from signjoey.external_metrics import mscoco_rouge
+from external_metrics import sacrebleu
+from external_metrics import mscoco_rouge
 import numpy as np
 
 WER_COST_DEL = 3
@@ -90,6 +90,12 @@ def rouge(references, hypotheses):
 
     return rouge_score * 100
 
+
+def acc(references, hypotheses):
+    total_acc = 0.
+    for r, h in zip(references, hypotheses):
+        total_acc += int(r == h)
+    return (total_acc/len(references)) * 100
 
 def wer_list(references, hypotheses):
     total_error = total_del = total_ins = total_sub = total_ref_len = 0

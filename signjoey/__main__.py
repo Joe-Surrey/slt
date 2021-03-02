@@ -2,8 +2,8 @@ import argparse
 import os
 
 import sys
-from signjoey.training import train
-from signjoey.prediction import test
+from training import train
+from prediction import test
 
 sys.path.append("/vol/research/extol/personal/cihan/code/SignJoey")
 
@@ -14,7 +14,7 @@ def main():
     ap.add_argument("mode", choices=["train", "test"], help="train a model or test")
 
     ap.add_argument("config_path", type=str, help="path to YAML config file")
-
+    ap.add_argument("--wkdir",type=str,help="Set to slt dir if not running from there")
     ap.add_argument("--ckpt", type=str, help="checkpoint for prediction")
 
     ap.add_argument(
@@ -23,6 +23,9 @@ def main():
     ap.add_argument("--gpu_id", type=str, default="0", help="gpu to run your job on")
     args = ap.parse_args()
 
+    if args.wkdir != None:
+        os.chdir(args.wkdir)
+    print(os.getcwd())
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
 
     if args.mode == "train":

@@ -19,7 +19,7 @@ import torch
 from torch import nn, Tensor
 from torchtext.data import Dataset
 import yaml
-from signjoey.vocabulary import GlossVocabulary, TextVocabulary
+from vocabulary import GlossVocabulary, TextVocabulary
 
 
 def make_model_dir(model_dir: str, overwrite: bool = False) -> str:
@@ -173,6 +173,14 @@ def load_config(path="configs/default.yaml") -> dict:
         cfg = yaml.safe_load(ymlfile)
     return cfg
 
+def save_config(path,cfg) -> None:
+    """
+    Saves a config file to a YAML
+    """
+    if not path.endswith(".yaml"):
+        path += ".yaml"
+    with open(path, 'w', encoding="utf-8") as ymlfile:
+        yaml.dump(cfg, ymlfile, default_flow_style=False)
 
 def bpe_postprocess(string) -> str:
     """

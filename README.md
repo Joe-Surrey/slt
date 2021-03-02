@@ -17,7 +17,7 @@ This code is based on [Joey NMT](https://github.com/joeynmt/joeynmt) but modifie
 
   `python -m signjoey train configs/sign.yaml` 
 
-! Note that the default data directory is `./data`. If you download them to somewhere else, you need to update the `data_path` parameters in your config file.   
+! Note that the default data directory is `../data`. If you download them to somewhere else, you need to update the `data_path` parameters in your config file.   
 ## ToDo:
 
 - [X] *Initial code release.*
