@@ -19,12 +19,13 @@ def modify(node,mod_key,mod_value):
     return node_count
 
 def parse(value):
-    if isinstance(value,str):
-        if value.isnumeric():
-            if "." in value:
-                return float(value)
-            else:
-                return int(value)
+    try:
+        value = int(value)
+    except:
+        try:
+            value = float(value)
+        except:
+            pass
     return value
 
 def dirify(out_dir):
@@ -118,19 +119,21 @@ if __name__ == "__main__":
     cfgs = []
     cfg_paths = []
     for value in values:
+        mod_value = parse(value)
         path = dirify(mod_key) + str(value)
         mkdir(out_path_base + path)
         for seed in seeds:
             seed_path = dirify(dirify(mod_key) + str(value)) + str(seed)
             mkdir(out_path_base +seed_path)
             cfgs.append(copy.deepcopy(base_cfg))
-            value = parse(value)
-            num_changes = modify(cfgs[-1], mod_key, value)  # Modify the value to be changed
+
+            num_changes = modify(cfgs[-1], mod_key, mod_value)  # Modify the value to be changed
             if mod_key == "hidden_size":
-                num_changes += modify(cfgs[-1], "embedding_dim", value)
+                num_changes += modify(cfgs[-1], "embedding_dim", mod_value)
             print(f"Total: {num_changes} instances changed")
 
             cfgs[-1]["training"]["model_dir"] += dirify(seed_path)  # Modify model path
+            cfgs[-1]["training"]["random_seed"] = seed
             cfg_paths.append(out_dir + f"/configs/{value}_{seed}.yaml")
 
     mkdir(out_dir + "/configs")

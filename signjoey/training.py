@@ -1248,12 +1248,13 @@ def train(cfg_file: str) -> None:
 
     # predict with the best model on validation and test
     # (if test data is available)
-    ckpt = "{}/{}.ckpt".format(trainer.model_dir, trainer.best_ckpt_iteration)
-    output_name = "best.IT_{:08d}".format(trainer.best_ckpt_iteration)
-    output_path = os.path.join(trainer.model_dir, output_name)
-    logger = trainer.logger
-    del trainer
-    test(cfg_file, ckpt=ckpt, output_path=output_path, logger=logger)
+    if cfg["data"]["test"] is not None:
+        ckpt = "{}/{}.ckpt".format(trainer.model_dir, trainer.best_ckpt_iteration)
+        output_name = "best.IT_{:08d}".format(trainer.best_ckpt_iteration)
+        output_path = os.path.join(trainer.model_dir, output_name)
+        logger = trainer.logger
+        del trainer
+        test(cfg_file, ckpt=ckpt, output_path=output_path, logger=logger)
 
 
 if __name__ == "__main__":
