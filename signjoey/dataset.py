@@ -11,6 +11,7 @@ import pickle
 import gzip
 import torch
 import lzma
+from augmentations import augment
 
 def load_dataset_file(filename):
     print(f"Loading {filename}")
@@ -53,12 +54,16 @@ class SignTranslationDataset(data.Dataset):
         if not isinstance(path, list):
             path = [path]
 
+
+
         samples = {}
         for annotation_file in path:
             tmp = load_dataset_file(annotation_file)
             for s in tmp:
                 seq_id = s["name"]
-                s["sign"] = torch.Tensor(np.delete(pickle.loads(lzma.decompress(s['sign'])), (range(13 * 3, 25 * 3)), axis=1))
+                # Decompress and augment
+                s["sign"] = augment(pickle.loads(lzma.decompress(s['sign'])))
+
                 if seq_id in samples:
                     assert samples[seq_id]["name"] == s["name"]
                     assert samples[seq_id]["signer"] == s["signer"]
@@ -95,6 +100,19 @@ class SignTranslationDataset(data.Dataset):
         super().__init__(examples, fields, **kwargs)
 
 if __name__ == "__main__":#Get stats
+
+
+    import cv2
+
+    x_indexes = np.array([i * 3 for i in range(135)])
+    y_indexes = np.array([(i * 3) + 1 for i in range(135)])
+
+    def vis(keypoints):
+        if len(keypoints.shape) > 1:
+            keypoints = keypoints[0]
+
+
+
     parser = argparse.ArgumentParser("test-data")
     parser.add_argument(
         "--path",
@@ -107,17 +125,33 @@ if __name__ == "__main__":#Get stats
     path = args.path
     tmp = load_dataset_file(path)
 
+
+    max_x = 0
+    min_x = np.inf
+    max_y = 0
+    min_y = np.inf
+
     means = np.zeros(len(tmp))
     lengths = np.zeros(len(tmp))
-    for i,s in enumerate(tmp):
+    for i, s in enumerate(tmp):
         values = pickle.loads(lzma.decompress(s['sign']))#["shoulder centre"]
-        vid_means = values.mean(axis = 0)
+
+        xs = values[:,x_indexes]
+        ys = values[:,y_indexes]
+        max_x = max(max_x, xs.max())
+        min_x = min(min_x, xs.min())
+        max_y = max(max_y, ys.max())
+        min_y = min(min_y, ys.min())
+
+        vid_means = values.mean(axis=0)
 
         means[i] = (vid_means[5*3] + vid_means[6*3])/2
 
         lengths[i] = values.shape[0]
 
     print(means.shape)
+
+    print(f"X: {max_x}   {min_x} Y: {max_y}    {min_y}")
     print(f"Shoulders have means: {means.mean()}, var: {means.std(ddof=1)}, max: {means.max()}, min: {means.min()}")
     print(f"Video length has mean: {lengths.mean()}, var: {lengths.std(ddof=1)}, max: {lengths.max()}, min: {lengths.min()}")
 

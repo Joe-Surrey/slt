@@ -791,9 +791,9 @@ class TrainManager:
                         self.scheduler.step(ckpt_score)
                         now_lr = self.scheduler.optimizer.param_groups[0]["lr"]
 
-                        if prev_lr != now_lr:
-                            if self.last_best_lr != prev_lr:
-                                self.stop = True
+                        #if prev_lr != now_lr: #Early stopping for translation
+                        #    if self.last_best_lr != prev_lr:
+                        #        self.stop = True
 
                     # append to validation report
                     self._add_report(

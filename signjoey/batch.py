@@ -112,6 +112,8 @@ class Batch:
             self.gls, self.gls_lengths = torch_batch.gls
             self.num_gls_tokens = self.gls_lengths.sum().detach().clone().numpy()
 
+
+
         if use_cuda:
             self._make_cuda()
 
