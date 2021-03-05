@@ -7,7 +7,6 @@ def centre_and_scale(batch):
     """
     Centre by shoulders then scale by distance between shoulders and hips
     """
-
     x_indexes = np.array(range(0, batch.shape[-1], 3))
     y_indexes = np.array(range(1, batch.shape[-1], 3))
 
@@ -24,7 +23,6 @@ def centre_and_scale(batch):
 
     hip = np.concatenate([hip_x_means, hip_y_means])
     shoulder = np.concatenate([shoulder_x_means, shoulder_y_means])
-
 
     scale_factors = dist = np.linalg.norm(hip-shoulder)
 
@@ -48,12 +46,22 @@ def remove_lower_body(batch):
     batch = np.delete(batch, (range(13 * 3, 25 * 3)), axis=1)
     return batch
 
-def augment(batch):
+def load_augment(batch):
     """
-    All augmentations to do to a batch
+    Augmentations to do to a batch when loading
+    This is where removing keypoints etc. should go
+    The input will be a numpy array and output a torch Tensor
     """
     batch = remove_lower_body(batch)
     batch = centre_and_scale(batch)
     batch = to_tensor(batch)
 
+    return batch
+
+def train_augment(batch):
+    """
+    Augmentations to do when training
+    This is where random flips etc. should go
+    The input and output will be a torch Tensor
+    """
     return batch

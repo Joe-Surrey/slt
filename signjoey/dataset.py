@@ -11,7 +11,7 @@ import pickle
 import gzip
 import torch
 import lzma
-from augmentations import augment
+from augmentations import load_augment
 
 def load_dataset_file(filename):
     print(f"Loading {filename}")
@@ -62,7 +62,7 @@ class SignTranslationDataset(data.Dataset):
             for s in tmp:
                 seq_id = s["name"]
                 # Decompress and augment
-                s["sign"] = augment(pickle.loads(lzma.decompress(s['sign'])))
+                s["sign"] = load_augment(pickle.loads(lzma.decompress(s['sign'])))
 
                 if seq_id in samples:
                     assert samples[seq_id]["name"] == s["name"]

@@ -3,8 +3,7 @@ import math
 import random
 import torch
 import numpy as np
-import pickle
-import lzma
+from augmentations import train_augment
 
 class Batch:
     """Object for holding a batch of data with mask during training.
@@ -111,7 +110,8 @@ class Batch:
         if hasattr(torch_batch, "gls"):
             self.gls, self.gls_lengths = torch_batch.gls
             self.num_gls_tokens = self.gls_lengths.sum().detach().clone().numpy()
-
+            if is_train:
+                self.gls = train_augment(self.gls)
 
 
         if use_cuda:
