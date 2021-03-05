@@ -46,12 +46,22 @@ def remove_lower_body(batch):
     batch = np.delete(batch, (range(13 * 3, 25 * 3)), axis=1)
     return batch
 
-def augment(batch):
+def load_augment(batch):
     """
-    All augmentations to do to a batch
+    Augmentations to do to a batch when loading
+    This is where removing keypoints etc. should go
+    The input will be a numpy array and output a torch Tensor
     """
     batch = remove_lower_body(batch)
     batch = centre_and_scale(batch)
     batch = to_tensor(batch)
 
+    return batch
+
+def train_augment(batch):
+    """
+    Augmentations to do when training
+    This is where random flips etc. should go
+    The input and output will be a torch Tensor
+    """
     return batch
