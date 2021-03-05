@@ -25,7 +25,6 @@ def centre_and_scale(batch):
     hip = np.concatenate([hip_x_means, hip_y_means])
     shoulder = np.concatenate([shoulder_x_means, shoulder_y_means])
 
-
     scale_factors = dist = np.linalg.norm(hip-shoulder)
 
     batch[:, x_indexes] /= scale_factors.T
