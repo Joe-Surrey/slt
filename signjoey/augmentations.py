@@ -7,7 +7,6 @@ def centre_and_scale(batch):
     """
     Centre by shoulders then scale by distance between shoulders and hips
     """
-
     x_indexes = np.array(range(0, batch.shape[-1], 3))
     y_indexes = np.array(range(1, batch.shape[-1], 3))
 
