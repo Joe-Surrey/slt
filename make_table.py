@@ -66,7 +66,7 @@ def add_row(sheet, row, data, bold_index=None, do_border=False):
             sheet[cell].border = horizontal_border
         col += 1
 
-def add(row, cfgs,results, bold_index, do_test = False):
+def add(sheet, row, cfgs,results, bold_index, do_test = False):
     prev_mod = None
     for name, cfg in cfgs.items():
         row += 1
@@ -161,10 +161,10 @@ def do_one(args):
 
 
     add_row(sheet,row,headers,bold_index)
-    row = add(row,cfgs,results, bold_index,args.test)
+    row = add(sheet,row,cfgs,results, bold_index,args.test)
 
     row += 1
-    row = add(row, base_line_configs, base_line_results, bold_index, args.test)
+    row = add(sheet, row, base_line_configs, base_line_results, bold_index, args.test)
 
     workbook.save(filename=base_path + "/results.xlsx")
 

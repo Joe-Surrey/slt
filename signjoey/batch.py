@@ -44,7 +44,7 @@ class Batch:
 
 
 
-        # Here be dragons
+        # Here be dragons (random masking)
         if frame_subsampling_ratio:
             tmp_sgn = torch.zeros_like(self.sgn)
             tmp_sgn_lengths = torch.zeros_like(self.sgn_lengths)
@@ -76,6 +76,11 @@ class Batch:
                 features[mask_frame_idx, :] = 1e-8
                 tmp_sgn[idx] = features
             self.sgn = tmp_sgn
+
+        #Augmentations
+        if is_train:
+            self.sgn = train_augment(self.sgn)
+
 
         self.sgn_dim = sgn_dim
         self.sgn_mask = (self.sgn != torch.zeros(sgn_dim))[..., 0].unsqueeze(1)
@@ -110,8 +115,7 @@ class Batch:
         if hasattr(torch_batch, "gls"):
             self.gls, self.gls_lengths = torch_batch.gls
             self.num_gls_tokens = self.gls_lengths.sum().detach().clone().numpy()
-            if is_train:
-                self.gls = train_augment(self.gls)
+
 
 
         if use_cuda:
