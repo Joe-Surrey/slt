@@ -18,16 +18,16 @@ def centre_and_scale(example):
     example[:, y_indexes] -= shoulder_y_means.T
 
     # Scale by distance between shoulder centre and hip centre
-    hip_x_means = np.array([(example[:, (11 * 3)] + example[:, (12 * 3)]) / 2])
-    hip_y_means = np.array([(example[:, (11 * 3) + 1] + example[:, (12 * 3) + 1]) / 2])
+    #hip_x_means = np.array([(example[:, (11 * 3)] + example[:, (12 * 3)]) / 2])
+    #hip_y_means = np.array([(example[:, (11 * 3) + 1] + example[:, (12 * 3) + 1]) / 2])
 
-    hip = np.concatenate([hip_x_means, hip_y_means])
-    shoulder = np.concatenate([shoulder_x_means, shoulder_y_means])
+    #hip = np.concatenate([hip_x_means, hip_y_means])
+    #shoulder = np.concatenate([shoulder_x_means, shoulder_y_means])
 
-    scale_factors = dist = np.linalg.norm(hip-shoulder)
+    #scale_factors = dist = np.linalg.norm(hip-shoulder)
 
-    example[:, x_indexes] /= scale_factors.T
-    example[:, y_indexes] /= scale_factors.T
+    #example[:, x_indexes] /= scale_factors.T
+    #example[:, y_indexes] /= scale_factors.T
 
     return example
 
@@ -114,8 +114,8 @@ def train_augment(batch):
     """
     batch = to_np(batch)
     batch = random_flip(batch)
-    batch = random_scale(batch)
-    batch = random_rotation(batch)
+    #batch = random_scale(batch)
+    #batch = random_rotation(batch)
     batch = to_tensor(batch)
 
     return batch
