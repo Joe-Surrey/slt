@@ -112,10 +112,10 @@ def train_augment(batch):
     The input and output will be a torch Tensor
     The augmentations are applied to a whole batch
     """
-    batch = to_np(batch)
-    batch = random_flip(batch)
+    #batch = to_np(batch)
+    #batch = random_flip(batch)
     #batch = random_scale(batch)
     #batch = random_rotation(batch)
-    batch = to_tensor(batch)
+    #batch = to_tensor(batch)
 
     return batch
