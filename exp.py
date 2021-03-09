@@ -91,7 +91,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--base_cfg",
-        default="configs/sign_recognition_chalearn_openpose.yaml",
+        default="openpose",
         type=str,
         help="Base config file (yaml).",
     )
