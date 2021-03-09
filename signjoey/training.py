@@ -915,7 +915,7 @@ class TrainManager:
                     and self.last_best_lr != prev_lr
                 ):
                     self.logger.info(
-                        "Training ended since there were no improvements in"
+                        "Training ended since there were no improvements in "
                         "the last learning rate step: %f",
                         prev_lr,
                     )
@@ -1248,7 +1248,7 @@ def train(cfg_file: str) -> None:
 
     # predict with the best model on validation and test
     # (if test data is available)
-    if cfg["do_test"]:
+    if cfg["data"]["do_test"]:
         ckpt = "{}/{}.ckpt".format(trainer.model_dir, trainer.best_ckpt_iteration)
         output_name = "best.IT_{:08d}".format(trainer.best_ckpt_iteration)
         output_path = os.path.join(trainer.model_dir, output_name)

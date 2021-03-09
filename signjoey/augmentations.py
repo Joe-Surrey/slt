@@ -56,19 +56,35 @@ def remove_lower_body(example):
 
     return example
 
+def openpose(example):
+    example = remove_lower_body(example)
+    example = centre_and_scale(example)
+    return example
 
-def load_augment(batch):
+def i3d(example):
+    return example
+
+def eff(example):
+    return example
+
+load_augmentations = {
+    "openpose": openpose,
+    "i3d": i3d,
+    "eff": eff,
+}
+
+
+
+def load_augment(type,example):
     """
     Augmentations to do to when loading
     This is where removing keypoints etc. should go
     The input will be a numpy array and output a torch Tensor
     The augmentations are applied to individual examples
     """
-    batch = remove_lower_body(batch)
-    batch = centre_and_scale(batch)
-    batch = to_tensor(batch)
 
-    return batch
+    example = load_augmentations[type](example)
+    return to_tensor(example)
 
 
 def random_flip(batch):

@@ -47,6 +47,26 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Dataset, Vocabulary, Vocabul
         - txt_vocab: spoken text vocabulary extracted from training data
     """
 
+    if "dataset_type" in data_cfg:
+        if isinstance(data_cfg["dataset_type"],dict):
+            train_types = data_cfg["dataset_type"]["train"]\
+                if isinstance(data_cfg["dataset_type"]["train"],list)\
+                else [data_cfg["dataset_type"]["train"]]
+            dev_types = data_cfg["dataset_type"]["dev"] \
+                if isinstance(data_cfg["dataset_type"]["dev"], list) \
+                else [data_cfg["dataset_type"]["dev"]]
+            if data_cfg["do_test"]:
+                test_types = data_cfg["dataset_type"]["test"] \
+                    if isinstance(data_cfg["dataset_type"]["test"], list) \
+                    else [data_cfg["dataset_type"]["test"]]
+        else:
+            train_types = dev_types = test_types = data_cfg["dataset_type"] \
+                    if isinstance(data_cfg["dataset_type"], list) \
+                    else [data_cfg["dataset_type"]]
+    else:
+        num_datasets = len(data_cfg["train"]) if isinstance(data_cfg["train"],list) else 1
+        train_types, dev_types, test_types = ["openpose" for _ in range(num_datasets)]
+
     data_path = data_cfg.get("data_path", "../data")
 
     if isinstance(data_cfg["train"], list):
@@ -56,10 +76,15 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Dataset, Vocabulary, Vocabul
         pad_feature_size = sum(data_cfg["feature_size"])
 
     else:
-        train_paths = os.path.join(data_path, data_cfg["train"])
-        dev_paths = os.path.join(data_path, data_cfg["dev"])
-        test_paths = os.path.join(data_path, data_cfg["test"])
+        train_paths = [os.path.join(data_path, data_cfg["train"])]
+        dev_paths = [os.path.join(data_path, data_cfg["dev"])]
+        test_paths = [os.path.join(data_path, data_cfg["test"])]
         pad_feature_size = data_cfg["feature_size"]
+
+    train_paths = list(zip(train_paths,train_types))
+    dev_paths = list(zip(dev_paths, dev_types))
+    if data_cfg["do_test"]:
+        test_paths = list(zip(test_paths, test_types))
 
     level = data_cfg["level"]
     txt_lowercase = data_cfg["txt_lowercase"]
@@ -164,11 +189,14 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Dataset, Vocabulary, Vocabul
         )
         dev_data = keep
 
-    # check if target exists
-    test_data = SignTranslationDataset(
-        path=test_paths,
-        fields=(sequence_field, signer_field, sgn_field, gls_field, txt_field),
-    )
+    if data_cfg["do_test"]:
+        # check if target exists
+        test_data = SignTranslationDataset(
+            path=test_paths,
+            fields=(sequence_field, signer_field, sgn_field, gls_field, txt_field),
+        )
+    else:
+        test_data = None
 
     gls_field.vocab = gls_vocab
     txt_field.vocab = txt_vocab
