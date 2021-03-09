@@ -65,7 +65,7 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Dataset, Vocabulary, Vocabul
                     else [data_cfg["dataset_type"]]
     else:
         num_datasets = len(data_cfg["train"]) if isinstance(data_cfg["train"],list) else 1
-        train_types, dev_types, test_types = ["openpose" for _ in range(num_datasets)]
+        train_types = dev_types = test_types = ["openpose" for _ in range(num_datasets)]
 
     data_path = data_cfg.get("data_path", "../data")
 
