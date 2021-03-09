@@ -5,6 +5,15 @@ import copy
 import os
 
 
+config_files = {
+    "openpose": "configs/sign_recognition_chalearn_openpose.yaml",
+    "op":       "configs/sign_recognition_chalearn_openpose.yaml",
+    "eff":      "configs/sign_recognition_chalearn_eff.yaml",
+    "op_eff":   "configs/sign_recognition_chalearn_op_eff.yaml",
+    "i3d":      "configs/sign_recognition_chalearn_i3d.yaml",
+    "op_i3d":   "configs/sign_recognition_chalearn_op_i3d.yaml"
+}
+
 def modify(node,mod_key,mod_value):
     node_count = 0
     for key, item in node.items():
@@ -93,6 +102,13 @@ if __name__ == "__main__":
         help="Base output directory for experiment",
     )
     parser.add_argument(
+        "--type",
+        default="experiments/",
+        type=str,
+        help="Base output directory for experiment",
+    )
+
+    parser.add_argument(
         "--seeds",  #
         nargs="*",  # 0 or more values expected => creates a list
         type=int,
@@ -101,11 +117,18 @@ if __name__ == "__main__":
 
 #parse args
     args = parser.parse_args()
-    cfg_path = args.base_cfg
+
+    cfg_path = config_files[args.base_cfg]
     mod_key = args.mod
     values = args.values
     out_path_base = args.out_path
     seeds = args.seeds
+    type = args.seeds
+
+#Augmentations
+    if mod_key == "augs":
+        values = [{}]
+
 
     print(cfg_path, mod_key, values, out_path_base)
 #load base config
@@ -134,6 +157,9 @@ if __name__ == "__main__":
 
             cfgs[-1]["training"]["model_dir"] += dirify(seed_path)  # Modify model path
             cfgs[-1]["training"]["random_seed"] = seed
+
+            if type is not None:
+                cfgs[-1]["data"]["dataset_type"] = type
             cfg_paths.append(out_dir + f"/configs/{value}_{seed}.yaml")
 
     mkdir(out_dir + "/configs")
