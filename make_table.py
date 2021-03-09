@@ -75,28 +75,31 @@ def add(sheet, row, cfgs,results, bold_index=None, do_test = False):
 
         do_border = mod != prev_mod
         prev_mod = mod
+        mod = mod if mod in results else "all"
+        try:
+            if results[mod][seed] is None:
+                continue
+            dev = results[mod][seed]["dev"]
 
-        if results[mod][seed] is None:
-            continue
-        dev = results[mod][seed]["dev"]
+            opt = cfg["training"]["optimizer"]
+            lr = cfg["training"]["learning_rate"]
+            bs = cfg["training"]["batch_size"]
+            drop = cfg["model"]["encoder"]["dropout"]
+            layers = cfg["model"]["encoder"]["num_layers"]
+            hs = cfg["model"]["encoder"]["hidden_size"]
+            heads = cfg["model"]["encoder"]["num_heads"]
+            norm = cfg["model"]["encoder"]["embeddings"]["norm_type"]
+            act = cfg["model"]["encoder"]["embeddings"]["activation_type"]
+            scale = cfg["model"]["encoder"]["embeddings"]["scale"]
+            scale = "-" if not scale else scale
 
-        opt = cfg["training"]["optimizer"]
-        lr = cfg["training"]["learning_rate"]
-        bs = cfg["training"]["batch_size"]
-        drop = cfg["model"]["encoder"]["dropout"]
-        layers = cfg["model"]["encoder"]["num_layers"]
-        hs = cfg["model"]["encoder"]["hidden_size"]
-        heads = cfg["model"]["encoder"]["num_heads"]
-        norm = cfg["model"]["encoder"]["embeddings"]["norm_type"]
-        act = cfg["model"]["encoder"]["embeddings"]["activation_type"]
-        scale = cfg["model"]["encoder"]["embeddings"]["scale"]
-        scale = "-" if not scale else scale
-
-        current_row = [seed, opt, lr, bs, drop, layers, hs, heads, norm, act, scale] + dev
-        if do_test:
-            test = results[mod][seed]["test"]
-            current_row.extend(test)
-        add_row(sheet, row, current_row, bold_index=bold_index, do_border=do_border)
+            current_row = [seed, opt, lr, bs, drop, layers, hs, heads, norm, act, scale] + dev
+            if do_test:
+                test = results[mod][seed]["test"]
+                current_row.extend(test)
+            add_row(sheet, row, current_row, bold_index=bold_index, do_border=do_border)
+        except KeyError:
+            print(f"Couldnt find {mod} {seed}")
     return row
 
 def load(base_path,do_test = False):

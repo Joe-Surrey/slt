@@ -46,6 +46,29 @@ def to_np(batch):
 
     return batch
 
+def get_hands(example):
+    """
+    Get the hands and scale
+    """
+
+    left_wrists_x = example[:, 9 * 3:9 * 3 + 1]
+    left_wrists_y = example[:, (9 * 3) + 1:9 * 3 + 2]
+    right_wrists_x = example[:, 10 * 3:10 * 3 + 1]
+    right_wrists_y = example[:, (10 * 3) + 1:10 * 3 + 2]
+    left_hands = example[:, 25 * 3:45 * 3]
+    right_hands = example[:, 45 * 3:65 * 3]
+
+    x_indexes = np.array(range(0, left_hands.shape[-1], 3))
+    y_indexes = np.array(range(1, left_hands.shape[-1], 3))
+
+    left_hands[:, x_indexes] -= left_wrists_x
+    left_hands[:, y_indexes] -= left_wrists_y
+
+    right_hands[:, x_indexes] -= right_wrists_x
+    right_hands[:, y_indexes] -= right_wrists_y
+
+    example = np.concatenate([left_hands, right_hands],axis = 1)
+    return example
 
 def remove_lower_body(example):
     """
@@ -61,16 +84,21 @@ def openpose(example):
     example = centre_and_scale(example)
     return example
 
+
 def i3d(example):
     return example
 
 def eff(example):
     return example
 
+def openpose_hands(example):
+    example = get_hands(example)
+    return example
 load_augmentations = {
     "openpose": openpose,
     "i3d": i3d,
     "eff": eff,
+    "openpose_hands": openpose_hands,
 }
 
 
