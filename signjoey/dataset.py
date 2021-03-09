@@ -8,15 +8,20 @@ import numpy as np
 from torchtext.data import Field, RawField
 from typing import List, Tuple
 import pickle
+import pickle5
 import gzip
 import torch
 import lzma
 from augmentations import load_augment
+import math
 
 def load_dataset_file(filename):
     print(f"Loading {filename}")
     with open(filename, "rb") as f:
-        return pickle.load(f)
+        try:
+            return pickle.load(f)
+        except ValueError:
+            return pickle5.load(f)
 
 
 class SignTranslationDataset(data.Dataset):
@@ -51,20 +56,26 @@ class SignTranslationDataset(data.Dataset):
                 ("txt", fields[4]),
             ]
 
-        if not isinstance(path, list):
-            path = [path]
-
-
 
         samples = {}
-        for annotation_file in path:
+        for annotation_file, annotation_type in path:
             tmp = load_dataset_file(annotation_file)
             for s in tmp:
                 seq_id = s["name"]
                 # Decompress and augment
-                s["sign"] = load_augment(pickle.loads(lzma.decompress(s['sign'])))
+                s["sign"] = load_augment(annotation_type,pickle.loads(lzma.decompress(s['sign'])))
 
                 if seq_id in samples:
+                    if samples[seq_id]["sign"].shape[0] > s["sign"].shape[0]:# If there are less symbols then pad with zero filled
+                        feature_size = s["sign"].shape[1]
+                        difference =  samples[seq_id]["sign"].shape[0] - s["sign"].shape[0]
+                        s["sign"] = torch.cat([
+                            torch.zeros(math.ceil(difference/2),feature_size),
+                            s["sign"],
+                            torch.zeros(math.floor(difference / 2), feature_size)
+                        ],axis=0)
+
+                    samples[seq_id]["loaded"] += 1
                     assert samples[seq_id]["name"] == s["name"]
                     assert samples[seq_id]["signer"] == s["signer"]
                     assert samples[seq_id]["gloss"] == s["gloss"]
@@ -79,24 +90,28 @@ class SignTranslationDataset(data.Dataset):
                         "gloss": s["gloss"],
                         "text": s["text"],
                         "sign": s["sign"],
+                        "loaded": 1,
                     }
 
         examples = []
         for s in samples:
             sample = samples[s]
-            examples.append(
-                data.Example.fromlist(
-                    [
-                        sample["name"],
-                        sample["signer"],
-                        # This is for numerical stability
-                        sample["sign"] + 1e-8,
-                        str(sample["gloss"]).strip(),
-                        str(sample["text"]).strip(),
-                    ],
-                    fields,
+            if sample['loaded'] == len(path):
+                examples.append(
+                    data.Example.fromlist(
+                        [
+                            sample["name"],
+                            sample["signer"],
+                            # This is for numerical stability
+                            sample["sign"] + 1e-8,
+                            str(sample["gloss"]).strip(),
+                            str(sample["text"]).strip(),
+                        ],
+                        fields,
+                    )
                 )
-            )
+            else:
+                print(f"{s} only loaded {sample['loaded']} annotations so has been removed")
         super().__init__(examples, fields, **kwargs)
 
 if __name__ == "__main__":#Get stats
