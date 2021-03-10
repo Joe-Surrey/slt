@@ -200,7 +200,7 @@ def pretty_plot_confusion_matrix(df_cm, annot=True, cmap="Oranges", fmt='.2f', f
     ax.set_xlabel(xlbl)
     ax.set_ylabel(ylbl)
     plt.tight_layout()  #set layout slim
-    plt.show()
+    plt.savefig('/vol/research/SignRecognition/slt/experiments/norm_experiments/heads/111/temp.png')
 #
 
 def plot_confusion_matrix_from_data(y_test, predictions, columns=None, annot=True, cmap="Oranges",
@@ -291,14 +291,70 @@ def get_vals(path):
 
 
 if(__name__ == '__main__'):
-    base_path = "/vol/research/SignRecognition/slt/sign_recognition_cl_openpose/"
+    from collections import defaultdict
+    base_path = "/vol/research/SignRecognition/slt/experiments/norm_experiments/heads/111/"
     gt_path = base_path + "references.dev.gls"
     preds_path = base_path + "gls/92000.dev.hyp.gls"
 
     gt = get_vals(gt_path)
     preds = get_vals(preds_path)
 
-    print(len(np.unique(gt)))
 
-    plot_confusion_matrix_from_data(gt,preds)
+    cats = np.unique(gt)
+    print(cats)
+    indexes = {item: index for index, item in enumerate(cats)}
+
+
+    def sort_acc(x):
+        return x[1][1]
+
+
+    def top_n_indexes(arr, n):
+        idx = np.argpartition(arr, arr.size - n, axis=None)[-n:]
+        width = arr.shape[1]
+        return [divmod(i, width) for i in idx]
+
+    counts = np.zeros((len(gt), len(gt)),int)
+
+    for index in range(len(gt)):
+        gt_val = gt[index]
+        pred_val = preds[index]
+        if pred_val not in cats:
+            print(pred_val)
+            continue
+        if gt_val != pred_val:
+            counts[indexes[gt_val]][indexes[pred_val]] += 1
+
+    confusion = sorted(top_n_indexes(counts, 10), key = lambda x: counts[x[0]][x[1]])
+
+
+    labels = defaultdict(list)
+    import csv
+    with open('/vol/research/SignTranslation/data/ChaLearn2021/val/valid_labels.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            file, label = row
+            labels[str(label)].append(file)
+
+
+
+    for gt_index, pred_index in confusion:
+        print(f"Confusion between groundtruth: {cats[gt_index]} and prediction: {cats[pred_index]}, count = {counts[gt_index][pred_index]}")
+        print(f"Videos: {labels[cats[gt_index]][0]}\n{labels[cats[pred_index]][0]},")
+
+
+
+
+
+
+    #worst = [item[0] for item in sorted(counts.items(), key=(sort_acc))][0:25]
+
+    #indexes = [index for index, item in enumerate(gt) if item in worst]
+
+    #mod_gt = [item for index, item in enumerate(gt) if index in indexes]
+    #mod_preds = [item for index, item in enumerate(preds) if index in indexes]
+
+    #print(len(np.unique(gt)))
+
+    #plot_confusion_matrix_from_data(mod_gt,mod_preds)
 
